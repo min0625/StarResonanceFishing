@@ -1,6 +1,6 @@
 """
 檢測區域測試工具
-運行此脚本可以預覽配置的檢測區域
+運行此腳本可以預覽配置的檢測區域
 """
 import cv2
 import numpy as np
@@ -12,10 +12,10 @@ import sys
 
 
 def load_config():
-    """加載配置文件"""
+    """加載配置檔案"""
     config_path = Path("config.yaml")
     if not config_path.exists():
-        print("錯誤: 找不到 config.yaml 文件")
+        print("錯誤: 找不到 config.yaml 檔案")
         sys.exit(1)
     
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -155,7 +155,7 @@ def main():
             (0, 128, 255), "red_tension_region", 90
         ))
 
-    # 5. "再来一次"按鈕檢測區域
+    # 5. "再來一次"按鈕檢測區域
     retry_button_region = config.get('detection', {}).get('retry_button', {}).get('region', {})
     if retry_button_region:
         regions.append(draw_region_on_screen(
@@ -243,7 +243,7 @@ def main():
         "  綠色框 = 魚追踪區域",
         "  黄色框 = 拉力計檢測區域",
         "  橙色框 = 紅色張力檢測區域",
-        "  紫红框 = 再来一次按鈕區域",
+        "  紫红框 = 再來一次按鈕區域",
         "  紫色框 = 魚竿耐久度檢測區域",
         "",
         "點擊位置:",
@@ -268,7 +268,7 @@ def main():
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
         y_offset += 25
     
-    # 保存到文件
+    # 保存到檔案
     output_file = "debug_detection_area.png"
     cv2.imwrite(output_file, img)
     print(f"\n✓ 截圖已保存: {output_file}")
@@ -293,7 +293,7 @@ def main():
             print(f"✓ 截圖已保存: {output_file}")
         elif key == ord('r') or key == ord('R'):
             print("\n刷新截圖...")
-            # 重新運行主函数
+            # 重新運行主函數
             cv2.destroyAllWindows()
             time.sleep(0.5)
             main()

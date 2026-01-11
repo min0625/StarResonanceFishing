@@ -29,7 +29,7 @@ def list_all_windows():
     print("\n" + "=" * 60)
     print(f"共找到 {len(valid_windows)} 個視窗")
     print("=" * 60)
-    print("\n提示: 複製你的遊戲視窗標題到 config.yaml 文件中")
+    print("\n提示: 複製你的遊戲視窗標題到 config.yaml 檔案中")
 
 
 def search_window(keyword: str):

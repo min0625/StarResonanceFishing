@@ -560,9 +560,9 @@ class FishingBot:
     
     def _reset_and_continue(self):
         """
-        重置狀態，點擊"再来一次"按鈕繼續釣魚
+        重置狀態，點擊"再來一次"按鈕繼續釣魚
         """
-        self.logger.debug("开始寻找'再来一次'按鈕")
+        self.logger.debug("開始尋找'再來一次'按鈕")
         
         # 獲取配置
         retry_config = self.config.get('detection.retry_button', {})

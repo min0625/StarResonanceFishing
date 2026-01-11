@@ -19,9 +19,9 @@ class ConfigManager:
         self.config = self._load_config()
     
     def _load_config(self) -> dict:
-        """加載配置文件"""
+        """加載配置檔案"""
         if not self.config_path.exists():
-            raise FileNotFoundError(f"配置文件不存在: {self.config_path}")
+            raise FileNotFoundError(f"配置檔案不存在: {self.config_path}")
         
         with open(self.config_path, 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)
@@ -49,5 +49,5 @@ class ConfigManager:
         return value
     
     def reload(self):
-        """重新加載配置文件"""
+        """重新加載配置檔案"""
         self.config = self._load_config()

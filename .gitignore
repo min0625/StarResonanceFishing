@@ -20,12 +20,12 @@ wheels/
 .installed.cfg
 *.egg
 
-# 虚拟环境
+# 虛擬環境
 venv/
 env/
 ENV/
 
-# 日誌文件
+# 日誌檔案
 *.log
 
 # IDE
@@ -35,6 +35,6 @@ ENV/
 *.swo
 *~
 
-# 測試文件
+# 測試檔案
 debug*.png
 debug_screenshots/

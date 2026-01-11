@@ -4,15 +4,15 @@ game:
   
 # 釣魚配置
 fishing:
-  # 抛竿操作类型：key（鍵盘）或 click（滑鼠點擊）
+  # 抛竿操作類型：key（鍵盘）或 click（滑鼠點擊）
   cast_type: "click"  # 可選: "key" 或 "click"
-  # 抛竿按鍵（当 cast_type 為 key 時使用）
+  # 抛竿按鍵（當 cast_type 為 key 時使用）
   cast_key: "e"
-  # 抛竿點擊位置（当 cast_type 為 click 時使用，相對於視窗的比例 0-1）
+  # 抛竿點擊位置（當 cast_type 為 click 時使用，相對於視窗的比例 0-1）
   cast_click_pos:
     x: 0.5
     y: 0.5
-  # 收竿操作类型
+  # 收竿操作類型
   reel_type: "click"  # 可選: "key" 或 "click"
   # 收竿按鍵
   reel_key: "e"
@@ -28,7 +28,7 @@ fishing:
   reel_delay: 0.5
   # 魚追踪配置
   fish_tracking:
-    enabled: true  # 是否启用魚追踪
+    enabled: true  # 是否啟用魚追踪
     left_key: "a"  # 向左移動鍵
     right_key: "d"  # 向右移動鍵
     center_threshold: 0.13  # 中心閾值（相對於視窗寬度）
@@ -94,7 +94,7 @@ detection:
       y: 0.8
       width: 0.3
       height: 0.1
-  # "再来一次"按鈕檢測配置（釣魚完成後點擊繼續）
+  # "再來一次"按鈕檢測配置（釣魚完成後點擊繼續）
   retry_button:
     template: "templates/retry_button.png"  # 按鈕的模板圖片
     wait_time: 2  # 等待按鈕出现的時間（秒）

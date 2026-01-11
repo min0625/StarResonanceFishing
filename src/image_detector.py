@@ -59,7 +59,7 @@ class ImageDetector:
         
         template_file = Path(template_path)
         if not template_file.exists():
-            self.logger.warning(f"模板文件不存在: {template_path}")
+            self.logger.warning(f"模板檔案不存在: {template_path}")
             return None
         
         try:
@@ -164,7 +164,7 @@ class ImageDetector:
         保存截圖（用於測試）
         
         Args:
-            filename: 保存的文件名
+            filename: 保存的檔案名稱
             region: 截取區域
         """
         screen = self.capture_screen(region)

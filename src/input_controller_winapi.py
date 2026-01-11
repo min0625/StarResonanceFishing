@@ -100,7 +100,7 @@ class WinAPIInputController:
         self.delay_std = (random_delay_max - random_delay_min) / 6
         self.logger = logging.getLogger("FishingBot.WinAPIInputController")
         
-        # Windows API 函数
+        # Windows API 函式
         self.SendInput = windll.user32.SendInput
         self.SetCursorPos = windll.user32.SetCursorPos
         self.GetCursorPos = windll.user32.GetCursorPos

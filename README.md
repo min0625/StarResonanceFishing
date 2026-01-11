@@ -16,25 +16,25 @@ StarResonanceFishing/
 │   ├── input_controller_winapi.py   # 輸入控制（Windows API）
 │   └── image_detector.py            # 圖像檢測
 ├── templates/                       # 存放模板圖片（用於圖像識別）
-├── config.yaml                      # 配置文件
-├── requirements.txt                 # 依賴包列表
+├── config.yaml                      # 配置檔案
+├── requirements.txt                 # 相依套件列表
 ├── main.py                          # 主程式入口
 ├── debug_detection_area.py          # 測試檢測區域
-└── README.md                        # 說明文件
+└── README.md                        # 說明檔案
 ```
 
-## 安装步骤
+## 安裝步驟
 
-1. 確保已安装 Python 3.8 或更高版本
+1. 確保已安裝 Python 3.8 或更高版本
 
-2. 安装依賴包：
+2. 安裝相依套件：
 ```bash
 pip install -r requirements.txt
 ```
 
 ## 配置說明
 
-在運行程式前，請根据實際遊戲修改 `config.yaml` 文件：
+在運行程式前，請根據實際遊戲修改 `config.yaml` 檔案：
 
 ## 使用方法
 
