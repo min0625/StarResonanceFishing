@@ -88,29 +88,31 @@ class FishingBot:
     def _fishing_cycle(self):
         """執行一次完整的釣魚流程"""
 
+        # 檢查魚竿是否耐久度耗盡
+        self._check_and_replace_rod()
+
         # 1. 拋竿
         self._cast_rod()
         
         # 2. 等待咬鉤
-        while True:
+        count = 0
+        while count < 3:
             if self._wait_for_bite():
                 self.logger.info("上鉤了！")
+
+                # 3. 收竿
+                self._reel_in()
+
+                # 統計釣魚次數
+                self.fishing_count += 1
+                self.logger.info(f"成功釣魚 #{self.fishing_count}")
                 break
             else:
                 self.logger.warning("等待咬鉤逾時，重新開始")
-        
-        # 3. 收竿（如果未咬鉤也收竿）
-        self._reel_in()
-
-        # 統計釣魚次數
-        self.fishing_count += 1
-        self.logger.info(f"成功釣魚 #{self.fishing_count}")
+                count += 1
 
         # 4. 重置狀態 - 點擊"再來一次"按鈕
         self._reset_and_continue()
-
-        # 5. 檢查魚竿是否耐久度耗盡
-        self._check_and_replace_rod()
         
     def _cast_rod(self):
         """拋竿"""
@@ -629,7 +631,7 @@ class FishingBot:
         if not found:
             self.logger.warning("未找到'再來一次'按鈕，可能需要手動操作")
             self.logger.info("提示: 請確保已截取按鈕圖片並儲存為 templates/retry_button.png")
-            time.sleep(5)
+            time.sleep(1)
         else:
             # 等待界面響應
             response_delay = retry_config.get('response_delay', 1)
