@@ -1,14 +1,40 @@
 """
 釣魚機器人主邏輯
 """
+import sys
 import time
 import random
 import logging
 from enum import Enum
+from pathlib import Path
 from .config_manager import ConfigManager
 from .window_manager import WindowManager
 from .input_controller_winapi import WinAPIInputController
 from .image_detector import ImageDetector
+
+
+def get_resource_path(relative_path: str) -> str:
+    """
+    獲取資源文件路徑（支持 PyInstaller 打包）
+    
+    Args:
+        relative_path: 相對路徑
+    
+    Returns:
+        實際資源路徑
+    """
+    if getattr(sys, 'frozen', False):
+        # 打包後，優先使用外部資源
+        external_path = Path(sys.executable).parent / relative_path
+        if external_path.exists():
+            return str(external_path)
+        # 使用打包內的資源
+        base_path = Path(getattr(sys, '_MEIPASS', ''))
+    else:
+        # 開發環境
+        base_path = Path.cwd()
+    
+    return str(base_path / relative_path)
 
 
 class FishingState(Enum):
@@ -195,7 +221,7 @@ class FishingBot:
         # 截取檢測區域
         screen = self.image_detector.capture_screen(region)
         
-        template_path = "templates/bite_indicator.png"
+        template_path = get_resource_path("templates/bite_indicator.png")
         screen = self.image_detector.capture_screen(region)
         position = self.image_detector.find_template(screen, template_path)
         return position is not None
@@ -260,7 +286,7 @@ class FishingBot:
         )
         
         # 使用模板匹配
-        template_path = tension_config.get('template', 'templates/tension_bar.png')
+        template_path = get_resource_path(tension_config.get('template', 'templates/tension_bar.png'))
         try:
             screen = self.image_detector.capture_screen(region)
             position = self.image_detector.find_template(screen, template_path)
@@ -488,7 +514,7 @@ class FishingBot:
         )
         
         # 取得紅色張力模板配置
-        red_template_path = self.config.get('fishing.tension_phase.red_template', 'templates/red_tension.png')
+        red_template_path = get_resource_path(self.config.get('fishing.tension_phase.red_template', 'templates/red_tension.png'))
         red_template_threshold = self.config.get('fishing.tension_phase.red_template_threshold', 0.8)
         
         try:
@@ -570,7 +596,7 @@ class FishingBot:
         retry_config = self.config.get('detection.retry_button', {})
         wait_time = retry_config.get('wait_time', 2)  # 等待按鈕出现的時間
         search_timeout = retry_config.get('search_timeout', 5)  # 搜索超時時間
-        template_path = retry_config.get('template', 'templates/retry_button.png')
+        template_path = get_resource_path(retry_config.get('template', 'templates/retry_button.png'))
         
         # 等待按鈕出现
         time.sleep(wait_time)
@@ -647,7 +673,7 @@ class FishingBot:
         rod_config = self.config.get('detection.rod_durability', {})
         wait_time = rod_config.get('wait_time', 0.2)  # 等待提示出現的時間
         search_timeout = rod_config.get('search_timeout', 0.9)  # 搜尋逾時時間
-        template_path = rod_config.get('template', 'templates/rod_depleted.png')
+        template_path = get_resource_path(rod_config.get('template', 'templates/rod_depleted.png'))
         click_delay = rod_config.get('click_delay', 0.5)  # 兩次點擊之間的延遲
         response_delay = rod_config.get('response_delay', 1)  # 點擊後等待時間
         
