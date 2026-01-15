@@ -71,7 +71,8 @@ def main():
         logger.error(f"程式異常: {e}", exc_info=True)
     finally:
         logger.info("程式結束")
-
+        #停止以便查看日誌
+        input("按下 Enter 鍵以退出...")
 
 if __name__ == "__main__":
     main()

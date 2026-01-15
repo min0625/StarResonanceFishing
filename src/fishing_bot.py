@@ -309,7 +309,7 @@ class FishingBot:
         self.logger.info("開始處理拉力計階段")
         
         # 取得拉力計階段的配置
-        tension_duration = self.config.get('fishing.tension_phase.duration', 10)
+        tension_duration = self.config.get('fishing.tension_phase.duration', 180)
         check_interval = self.config.get('fishing.tension_phase.check_interval', 0.1)
         tracking_enabled = self.config.get('fishing.fish_tracking.enabled', True)
         red_detection_mode = self.config.get('fishing.tension_phase.red_detection_mode', 'color')
@@ -648,7 +648,7 @@ class FishingBot:
                     self.logger.info("已點擊'再來一次'按鈕")
                     found = True
                     break
-                
+
             except Exception as e:
                 self.logger.debug(f"搜尋按鈕失敗: {e}")
             

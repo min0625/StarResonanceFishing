@@ -35,7 +35,7 @@ fishing:
     key_press_duration: 0.15  # 按鍵持續時間（秒）
   # 拉力計階段配置（收竿後的QTE/追踪階段）
   tension_phase:
-    duration: 60  # 最大持續時間（秒）
+    duration: 180  # 最大持續時間（秒）
     check_interval: 0.1  # 檢測間格（秒）
     release_hold_duration: 0.5  # 釋放後保持釋放狀態的時間（秒）
     # 紅色檢測方式: 'color' 或 'template'
