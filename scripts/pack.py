@@ -71,7 +71,9 @@ def check():
 
     result = run(["python", "scripts/check.py"])
     if result != 0:
-        print("❌ 代碼檢查未通過，請先修復問題，透過 `python scripts/check.py --fix` 嘗試自動修復")
+        print(
+            "❌ 代碼檢查未通過，請先修復問題，透過 `python scripts/check.py --fix` 嘗試自動修復"
+        )
         return False
 
     return True

@@ -32,12 +32,12 @@ def main() -> int:
     # Prepare command sequence
     if args.fix:
         cmds: list[list[str]] = [
-            # ["python", "-m", "ruff", "format", "."],
+            ["python", "-m", "ruff", "format", "."],
             ["python", "-m", "ruff", "check", ".", "--fix"],
         ]
     else:
         cmds = [
-            # ["python", "-m", "ruff", "format", "--check", "."],
+            ["python", "-m", "ruff", "format", "--check", "."],
             ["python", "-m", "ruff", "check", "."],
         ]
 
