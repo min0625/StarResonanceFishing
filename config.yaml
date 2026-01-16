@@ -25,7 +25,7 @@ fishing:
   # 抛竿後等待時間（秒）
   cast_delay: 2
   # 收竿後等待時間（秒）
-  reel_delay: 0.5
+  reel_delay: 0.1
   # 魚追踪配置
   fish_tracking:
     enabled: true  # 是否啟用魚追踪
@@ -50,10 +50,10 @@ fishing:
 detection:
   # 檢測區域（相對於遊戲視窗，比例 0-1）
   region:
-    x: 0.4
-    y: 0.3
-    width: 0.2
-    height: 0.3
+    x: 0.45
+    y: 0.35
+    width: 0.1
+    height: 0.22
   # 識別閾值
   threshold: 0.8
   # 檢測間格（秒）
@@ -100,6 +100,7 @@ detection:
     wait_time: 2  # 等待按鈕出现的時間（秒）
     search_timeout: 5  # 搜索按鈕的超時時間（秒）
     response_delay: 1  # 點擊後等待界面響應的時間（秒）
+    check_interval: 0.5 # 檢測間格（秒）
     # 搜索區域（可選，預設為整個視窗）
     region:
       x: 0.7
@@ -109,8 +110,9 @@ detection:
   # 魚竿耐久度耗盡檢測配置
   rod_durability:
     template: "templates/rod_depleted.png"  # 耐久度耗盡提示的模板圖片
-    wait_time: 0.2  # 等待提示出现的時間（秒）
-    search_timeout: 0.9  # 搜索提示的超時時間（秒）
+    wait_time: 0.1  # 等待提示出现的時間（秒）
+    search_timeout: 0.4  # 搜索提示的超時時間（秒）
+    check_interval: 0.1 # 檢測間格（秒）
     # 搜索區域（可選，預設為整個視窗）
     region:
       x: 0.8
@@ -126,7 +128,7 @@ detection:
       x: 0.89
       y: 0.57
     click_delay: 0.5  # 两次點擊之間的延遲（秒）
-    response_delay: 0.5  # 點擊後等待界面響應的時間（秒）
+    response_delay: 0.1  # 點擊後等待界面響應的時間（秒）
 
 # 反檢測配置
 anti_detection:

@@ -170,6 +170,50 @@ class ImageDetector:
             self.logger.error(f"顏色檢測失敗: {e}")
             return False
     
+    def detect_color_in_range(self, region: Tuple[int, int, int, int],
+                             color_min: Tuple[int, int, int],
+                             color_max: Tuple[int, int, int],
+                             min_pixel_ratio: float = 0.01) -> bool:
+        """
+        檢測指定區域是否存在特定顏色範圍的像素
+        
+        Args:
+            region: 檢測區域 (x, y, width, height)
+            color_min: 最小顏色值 (B, G, R)
+            color_max: 最大顏色值 (B, G, R)
+            min_pixel_ratio: 最小像素比例（0.0-1.0），超過此比例才判定為存在該顏色
+            
+        Returns:
+            是否檢測到目標顏色範圍
+        """
+        screen = self.capture_screen(region)
+        if screen is None:
+            return False
+        
+        try:
+            # 創建顏色範圍遮罩
+            lower = np.array(color_min, dtype=np.uint8)
+            upper = np.array(color_max, dtype=np.uint8)
+            
+            # 使用 inRange 檢測顏色範圍
+            mask = cv2.inRange(screen, lower, upper)
+            
+            # 計算符合顏色範圍的像素數量
+            matched_pixels = cv2.countNonZero(mask)
+            total_pixels = screen.shape[0] * screen.shape[1]
+            
+            ratio = matched_pixels / total_pixels if total_pixels > 0 else 0.0
+            
+            if ratio >= min_pixel_ratio:
+                self.logger.debug(f"檢測到目標顏色範圍，像素比例: {ratio:.3f}")
+                return True
+            
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"顏色範圍檢測失敗: {e}")
+            return False
+    
     def save_screenshot(self, filename: str, region: Optional[Tuple[int, int, int, int]] = None):
         """
         保存截圖（用於測試）

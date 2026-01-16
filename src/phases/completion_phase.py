@@ -33,6 +33,7 @@ class CompletionPhase:
         retry_config = self.config.get('detection.retry_button', {})
         wait_time = retry_config.get('wait_time', 2)
         search_timeout = retry_config.get('search_timeout', 5)
+        check_interval = retry_config.get('check_interval', 0.5)
         template_path = get_resource_path(retry_config.get('template', 'templates/retry_button.png'))
         
         # 等待按鈕出現
@@ -62,7 +63,7 @@ class CompletionPhase:
             try:
                 screen = self.image_detector.capture_screen(region)
                 if screen is None:
-                    time.sleep(0.5)
+                    time.sleep(check_interval)
                     continue
                 
                 position = self.image_detector.find_template(screen, template_path)
@@ -72,7 +73,7 @@ class CompletionPhase:
                     click_y = region[1] + position[1]
                     
                     self.logger.info(f"找到'再來一次'按鈕，位置: ({click_x}, {click_y})")
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                     
                     self.input_controller.click(click_x, click_y, button='left')
                     self.logger.info("已點擊'再來一次'按鈕")
@@ -81,7 +82,7 @@ class CompletionPhase:
             except Exception as e:
                 self.logger.debug(f"搜尋按鈕失敗: {e}")
             
-            time.sleep(0.5)
+            time.sleep(check_interval)
         
         if not found:
             self.logger.warning("未找到'再來一次'按鈕，可能需要手動操作")

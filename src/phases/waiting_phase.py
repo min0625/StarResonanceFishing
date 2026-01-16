@@ -64,7 +64,20 @@ class WaitingPhase:
             int(h * region_config['height'])
         )
         
-        # 截取檢測區域
+        # 優先使用顏色檢測
+        # 咬鉤指示器的橙色範圍
+        color_detected = self.image_detector.detect_color_in_range(
+            region,
+            color_min=(1, 70, 246),
+            color_max=(29, 195, 254),
+            min_pixel_ratio=0.03  # 至少 3% 的像素符合顏色範圍
+        )
+        
+        if color_detected:
+            self.logger.info("檢測到咬鉤（顏色檢測）！")
+            return True
+        
+        # 如果顏色檢測失敗，使用模板匹配作為備用
         screen = self.image_detector.capture_screen(region)
         if screen is None:
             return False
@@ -73,7 +86,7 @@ class WaitingPhase:
         position = self.image_detector.find_template(screen, template_path)
         
         if position is not None:
-            self.logger.info("檢測到咬鉤！")
+            self.logger.info("檢測到咬鉤（模板匹配）！")
             return True
         
         return False
@@ -94,7 +107,7 @@ class WaitingPhase:
             self._reel_by_key(input_controller)
         
         # 等待收竿動畫
-        reel_delay = self.config.get('fishing.reel_delay', 1)
+        reel_delay = self.config.get('fishing.reel_delay', 0.1)
         time.sleep(reel_delay)
         
         self.logger.debug("收竿完成")

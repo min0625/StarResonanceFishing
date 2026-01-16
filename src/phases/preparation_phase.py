@@ -29,11 +29,12 @@ class PreparationPhase:
         
         # 取得配置
         rod_config = self.config.get('detection.rod_durability', {})
-        wait_time = rod_config.get('wait_time', 0.2)
-        search_timeout = rod_config.get('search_timeout', 0.9)
+        wait_time = rod_config.get('wait_time', 0.1)
+        search_timeout = rod_config.get('search_timeout', 0.4)
         template_path = get_resource_path(rod_config.get('template', 'templates/rod_depleted.png'))
         click_delay = rod_config.get('click_delay', 0.5)
-        response_delay = rod_config.get('response_delay', 1)
+        response_delay = rod_config.get('response_delay', 0.1)
+        check_interval = rod_config.get('check_interval', 0.1)
         
         # 等待提示出現
         time.sleep(wait_time)
@@ -62,7 +63,7 @@ class PreparationPhase:
             try:
                 screen = self.image_detector.capture_screen(region)
                 if screen is None:
-                    time.sleep(0.3)
+                    time.sleep(check_interval)
                     continue
                 
                 position = self.image_detector.find_template(screen, template_path, 0.87)
@@ -73,7 +74,7 @@ class PreparationPhase:
             except Exception as e:
                 self.logger.debug(f"搜尋耐久度提示失敗: {e}")
             
-            time.sleep(0.3)
+            time.sleep(check_interval)
         
         if found:
             # 取得點擊位置配置
