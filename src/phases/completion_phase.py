@@ -90,6 +90,7 @@ class CompletionPhase:
                     move_duration = self.config.get(
                         "anti_detection.mouse_move_duration", 0.0
                     )
+                    time.sleep(0.5)
 
                     self.input_controller.click(
                         click_x,
@@ -97,8 +98,6 @@ class CompletionPhase:
                         button="left",
                         move_duration=move_duration,
                     )
-
-                    time.sleep(0.1)
 
                     self.logger.info("已點擊'再來一次'按鈕")
                     found = True

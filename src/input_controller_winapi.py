@@ -249,7 +249,7 @@ class WinAPIInputController:
 
             # 發送事件
             self._send_input(down_input)
-            time.sleep(random.uniform(0.02, 0.05))
+            time.sleep(random.uniform(0.08, 0.12))
             self._send_input(up_input)
 
             self.logger.debug(
