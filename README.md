@@ -15,6 +15,10 @@
 
 ```
 StarResonanceFishing/
+├── scripts/                         # 各種腳本
+│   ├── check.py                     # 代碼檢查腳本
+│   ├── generate_version.py          # 版本檔案生成腳本
+│   └── pack.py                      # 打包腳本
 ├── src/
 │   ├── __init__.py                  # 模組初始化
 │   ├── fishing_bot.py               # 釣魚機器人主邏輯
@@ -26,7 +30,10 @@ StarResonanceFishing/
 │   └── image_detector.py            # 圖像檢測
 ├── templates/                       # 存放模板圖片（用於圖像識別）
 ├── config.yaml                      # 配置檔案
-├── requirements.txt                 # 相依套件列表
+├── requirements-dev-lock.txt        # 開發環境相依套件鎖定檔
+├── requirements-dev.txt             # 開發環境相依套件
+├── requirements-lock.txt            # 生產環境相依套件鎖定檔
+├── requirements.txt                 # 生產環境相依套件
 ├── main.py                          # 主程式入口
 ├── debug_detection_area.py          # 測試檢測區域
 └── README.md                        # 說明檔案
@@ -38,7 +45,7 @@ StarResonanceFishing/
 
 2. 安裝相依套件：
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev-lock.txt
 ```
 
 ## 配置說明

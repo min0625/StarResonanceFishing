@@ -1,9 +1,11 @@
 """
 視窗管理模組
 """
-import pygetwindow as gw
+
 import logging
 from typing import Optional, Tuple
+
+import pygetwindow as gw
 
 
 class WindowManager:
@@ -34,7 +36,9 @@ class WindowManager:
                 self.logger.info(f"找到視窗: {self.window.title}")
                 return True
             else:
-                self.logger.warning(f"未找到標題包含 '{self.window_title}' 的視窗")
+                self.logger.warning(
+                    f"未找到標題包含 '{self.window_title}' 的視窗"
+                )
                 return False
         except Exception as e:
             self.logger.error(f"查找視窗時出錯: {e}")
@@ -72,8 +76,12 @@ class WindowManager:
             return None
 
         try:
-            return (self.window.left, self.window.top,
-                    self.window.width, self.window.height)
+            return (
+                self.window.left,
+                self.window.top,
+                self.window.width,
+                self.window.height,
+            )
         except Exception as e:
             self.logger.error(f"獲取視窗位置時出錯: {e}")
             return None
