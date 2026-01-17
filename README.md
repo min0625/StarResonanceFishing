@@ -30,10 +30,9 @@ StarResonanceFishing/
 │   └── image_detector.py            # 圖像檢測
 ├── templates/                       # 存放模板圖片（用於圖像識別）
 ├── config.yaml                      # 配置檔案
-├── requirements-dev-lock.txt        # 開發環境相依套件鎖定檔
-├── requirements-dev.txt             # 開發環境相依套件
-├── requirements-lock.txt            # 生產環境相依套件鎖定檔
-├── requirements.txt                 # 生產環境相依套件
+├── pyproject.toml                   # Poetry 專案設定檔
+├── requirements-dev.txt             # 開發環境相依套件鎖定檔
+├── requirements.txt                 # 生產環境相依套件鎖定檔
 ├── main.py                          # 主程式入口
 ├── debug_detection_area.py          # 測試檢測區域
 └── README.md                        # 說明檔案
