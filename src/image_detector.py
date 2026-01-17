@@ -9,6 +9,10 @@ from typing import Optional, Tuple
 import cv2
 import numpy as np
 import pyautogui
+import pytesseract
+
+pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
+
 
 class ImageDetector:
     """圖像檢測器"""
@@ -115,7 +119,7 @@ class ImageDetector:
     ) -> int:
         """
         檢測圖像中特定顏色範圍的像素，判定張力狀態
-        
+
         顏色範圍定義（BGR 格式）：
         - 張力較高 (50): RGB 246,113,13 ~ 229,13,13 (BGR: 13,113,246 ~ 13,13,229)
         - 張力過高 (100): RGB 229,13,13 ~ 255,255,255 (BGR: 13,13,229 ~ 255,255,255)
@@ -134,20 +138,26 @@ class ImageDetector:
 
         try:
             total_pixels = screen.shape[0] * screen.shape[1]
-            
+
             # 定義張力過高的顏色範圍 (BGR: 13,13,229 ~ 255,255,255)
             # RGB 229,13,13 ~ 255,255,255
             lower_critical = np.array([13, 13, 229], dtype=np.uint8)
             upper_critical = np.array([255, 255, 255], dtype=np.uint8)
             mask_critical = cv2.inRange(screen, lower_critical, upper_critical)
             critical_pixels = cv2.countNonZero(mask_critical)
-            critical_ratio = critical_pixels / total_pixels if total_pixels > 0 else 0.0
-            
+            critical_ratio = (
+                critical_pixels / total_pixels if total_pixels > 0 else 0.0
+            )
+
             if critical_ratio > 0.95:
-                self.logger.debug(f"檢測到張力過高，像素比例: {critical_ratio:.3f}")
+                self.logger.debug(
+                    f"檢測到張力過高，像素比例: {critical_ratio:.3f}"
+                )
                 return 100
             if critical_ratio > 0.6:
-                self.logger.debug(f"檢測到張力較高，像素比例: {critical_ratio:.3f}")
+                self.logger.debug(
+                    f"檢測到張力較高，像素比例: {critical_ratio:.3f}"
+                )
                 return 50
 
             return 0
@@ -325,15 +335,10 @@ class ImageDetector:
             self.logger.error(f"白色水花檢測失敗: {e}")
             return None
 
-
-    import pytesseract
-
-    pytesseract.pytesseract.tesseract_cmd = r'D:\Tesseract-OCR\tesseract.exe'
-
     def _detect_tension_by_ocr(self, region: Tuple[int, int, int, int]) -> int:
         """
         使用 OCR 識別張力表上的數字（0-100）
-        
+
         Returns:
             張力數字，識別失敗返回 None
         """
@@ -345,22 +350,24 @@ class ImageDetector:
 
             # 轉換為灰度圖
             gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
-            
+
             # 二值化處理，增強數字對比度
             _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-            
+
             # 使用 pytesseract 識別數字
             # 配置為只識別數字
-            custom_config = r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789'
+            custom_config = (
+                r"--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789"
+            )
             text = pytesseract.image_to_string(binary, config=custom_config)
-            
+
             # 提取數字
             text = text.strip()
             if text.isdigit():
                 value = int(text)
                 if 0 <= value <= 100:
                     return value
-            
+
             return None
         except Exception as e:
             self.logger.debug(f"OCR 識別失敗: {e}")

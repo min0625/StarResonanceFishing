@@ -3,10 +3,8 @@
 """
 
 import logging
+import threading
 import time
-from pathlib import Path
-
-import cv2
 
 from ..utils import get_resource_path
 
@@ -78,10 +76,44 @@ class TensionPhase:
         tension_duration = self.config.get(
             "fishing.tension_phase.duration", 180
         )
-        check_interval = self.config.get(
-            "fishing.tension_phase.check_interval", 0.1
+
+        # 共享狀態變量
+        self.stop_threads = False
+        self.start_time = time.time()
+
+        # 創建並啟動兩個獨立線程
+        mouse_thread = threading.Thread(
+            target=self._mouse_control_thread, name="MouseControlThread"
         )
-        red_tension_intermittent_hold_threshold =self.config.get(
+        movement_thread = threading.Thread(
+            target=self._movement_control_thread, name="MovementControlThread"
+        )
+
+        # 啟動線程
+        mouse_thread.start()
+        movement_thread.start()
+
+        try:
+            # 主循環：監控拉力計是否還存在
+            while time.time() - self.start_time < tension_duration:
+                if not self.detect_tension_bar():
+                    self.logger.info("拉力計消失，結束追蹤階段")
+                    break
+                time.sleep(0.5)
+        finally:
+            # 通知線程停止
+            self.stop_threads = True
+
+            # 等待線程結束
+            mouse_thread.join(timeout=1.0)
+            movement_thread.join(timeout=1.0)
+
+            self.logger.info("拉力計階段完成")
+
+    def _mouse_control_thread(self):
+        """左鍵控制線程"""
+        # 取得配置
+        red_tension_intermittent_hold_threshold = self.config.get(
             "fishing.tension_phase.red_tension_intermittent_hold_threshold", 50
         )
         intermittent_hold_duration = self.config.get(
@@ -96,28 +128,12 @@ class TensionPhase:
         max_tension_release_duration = self.config.get(
             "fishing.tension_phase.max_tension_release_duration", 0.3
         )
-        tracking_enabled = self.config.get(
-            "fishing.fish_tracking.enabled", True
+        check_interval = self.config.get(
+            "fishing.tension_phase.check_interval", 0.05
         )
 
-        self.logger.info(f"紅色張力檢測")
-
-        start_time = time.time()
         is_holding_mouse = False
-        is_holding_left = False
-        is_holding_right = False
-        last_fish_position = None
-        pre_fish_position = ("center", 0.0)
-        no_detection_count = 0
-        max_no_detection = 100
         click_hold_release_time = None
-        # 因為左右魚桿比放開還慢N倍，這個參數用來補償這個時間差，數字越大表示魚桿壓住的時間越長
-        hold_rate = 2.5
-        # 因為左右魚桿和魚的速度不同，這個參數用來調整追蹤速度，數字越大表示魚桿壓住的時間越長
-        fish_speed_rate = 2
-
-        left_key = self.config.get("fishing.fish_tracking.left_key", "a")
-        right_key = self.config.get("fishing.fish_tracking.right_key", "d")
 
         # 開始時先按住左鍵
         self.input_controller.mouse_down("left")
@@ -125,14 +141,8 @@ class TensionPhase:
         self.logger.info("開始按住滑鼠左鍵")
 
         try:
-            while time.time() - start_time < tension_duration:
-                # 檢查拉力計是否還存在
-                if not self.detect_tension_bar():
-                    self.logger.info("拉力計消失，結束追蹤階段")
-                    break
-
+            while not self.stop_threads:
                 # 檢測紅色張力狀態
-                # tension_value = self._detect_red_tension_ocr()
                 tension_value = self._detect_red_tension_color()
                 if tension_value is not None:
                     self.logger.debug(f"張力值: {tension_value}")
@@ -150,8 +160,12 @@ class TensionPhase:
                 elapsed_since_time = None
                 if click_hold_release_time is not None:
                     elapsed_since_time = current_time - click_hold_release_time
+
                 if tension_value >= red_tension_max_threshold:
-                    if elapsed_since_time is None or elapsed_since_time >= max_tension_release_duration:
+                    if (
+                        elapsed_since_time is None
+                        or elapsed_since_time >= max_tension_release_duration
+                    ):
                         # 張力過高，釋放滑鼠左鍵
                         if is_holding_mouse:
                             self.input_controller.mouse_up("left")
@@ -163,12 +177,19 @@ class TensionPhase:
                 elif tension_value >= red_tension_intermittent_hold_threshold:
                     # 張力較高，間歇點擊滑鼠左鍵
                     if is_holding_mouse:
-                        if elapsed_since_time is None or elapsed_since_time >= intermittent_hold_duration:
+                        if (
+                            elapsed_since_time is None
+                            or elapsed_since_time >= intermittent_hold_duration
+                        ):
                             self.input_controller.mouse_up("left")
                             is_holding_mouse = False
                             click_hold_release_time = current_time
                     else:
-                        if elapsed_since_time is None or elapsed_since_time >= intermittent_release_duration:
+                        if (
+                            elapsed_since_time is None
+                            or elapsed_since_time
+                            >= intermittent_release_duration
+                        ):
                             self.input_controller.mouse_down("left")
                             is_holding_mouse = True
                             click_hold_release_time = current_time
@@ -176,178 +197,204 @@ class TensionPhase:
                     if not is_holding_mouse:
                         self.input_controller.mouse_down("left")
                         is_holding_mouse = True
-                        
-                # 魚追蹤
-                if tracking_enabled:
-                    fish_direction, offset_ratio = self._get_fish_position()
 
-                    if fish_direction is not None:
-                        last_fish_position = (fish_direction, offset_ratio)
-                        no_detection_count = 0
-                    else:
-                        no_detection_count += 1
-                        if (
-                            no_detection_count <= max_no_detection
-                            and last_fish_position is not None
-                        ):
-                            fish_direction, offset_ratio = last_fish_position
-                            self.logger.debug(
-                                f"未檢測到魚 ({no_detection_count}/{max_no_detection})，保持原動作: {fish_direction} ({offset_ratio:.3f})"
-                            )
-                        else:
-                            if no_detection_count == max_no_detection + 1:
-                                self.logger.warning(
-                                    f"連續{max_no_detection}次未檢測到魚，重置按鍵"
-                                )
-                            fish_direction = "center"
-                            offset_ratio = 0.0
-
-                    # 取得閾值配置
-                    center_threshold_max = self.config.get(
-                        "fishing.fish_tracking.center_threshold_max", 0.10
-                    )
-
-                    # 控制方向鍵
-                    if fish_direction == "center":
-                        # 魚在中心區域，釋放所有方向鍵
-                        if is_holding_left:
-                            self.input_controller.key_up(left_key)
-                            is_holding_left = False
-                            self.logger.debug(f"魚在中心，釋放 {left_key} 鍵")
-                        if is_holding_right:
-                            self.input_controller.key_up(right_key)
-                            is_holding_right = False
-                            self.logger.debug(f"魚在中心，釋放 {right_key} 鍵")
-                        time.sleep(check_interval)
-                    elif offset_ratio >= center_threshold_max:
-                        # 偏移量超過最大閾值，完全壓住按鍵
-                        if fish_direction == "left":
-                            if not is_holding_left:
-                                if is_holding_right:
-                                    self.input_controller.key_up(right_key)
-                                    is_holding_right = False
-                                self.input_controller.key_down(left_key)
-                                is_holding_left = True
-                                self.logger.debug(
-                                    f"魚在左側(完全)，按住 {left_key} 鍵"
-                                )
-                        else:  # right
-                            if not is_holding_right:
-                                if is_holding_left:
-                                    self.input_controller.key_up(left_key)
-                                    is_holding_left = False
-                                self.input_controller.key_down(right_key)
-                                is_holding_right = True
-                                self.logger.debug(
-                                    f"魚在右側(完全)，按住 {right_key} 鍵"
-                                )
-                        time.sleep(check_interval)
-                    else:
-                        pre_fish_direction, pre_offset_ratio = (
-                            pre_fish_position
-                        )
-
-                        if fish_direction == "left":
-                            if is_holding_right:
-                                self.input_controller.key_up(right_key)
-                                is_holding_right = False
-
-                            if pre_fish_direction == fish_direction:
-                                ratio_diff = offset_ratio - pre_offset_ratio
-                                if ratio_diff > 0:
-                                    if not is_holding_left:
-                                        self.input_controller.key_down(
-                                            left_key
-                                        )
-                                        is_holding_left = True
-                                elif ratio_diff < 0:
-                                    if is_holding_left:
-                                        self.input_controller.key_up(left_key)
-                                        is_holding_left = False
-                                else:  # ratio_diff == 0
-                                    if is_holding_left:
-                                        self.input_controller.key_up(left_key)
-                                        is_holding_left = False
-                                    else:
-                                        self.input_controller.key_down(
-                                            left_key
-                                        )
-                                        is_holding_left = True
-                                if is_holding_left:
-                                    press_duration = (
-                                        abs(ratio_diff)
-                                        * fish_speed_rate
-                                        * hold_rate
-                                    )
-                                else:
-                                    press_duration = (
-                                        abs(ratio_diff) * fish_speed_rate
-                                    )
-                                time.sleep(press_duration)
-                            else:
-                                if not is_holding_left:
-                                    self.input_controller.key_down(left_key)
-                                    is_holding_left = True
-                                    time.sleep(check_interval * hold_rate)
-
-                        else:  # right
-                            if is_holding_left:
-                                self.input_controller.key_up(left_key)
-                                is_holding_left = False
-                            if pre_fish_direction == fish_direction:
-                                ratio_diff = offset_ratio - pre_offset_ratio
-                                if ratio_diff > 0:
-                                    if not is_holding_right:
-                                        self.input_controller.key_down(
-                                            right_key
-                                        )
-                                        is_holding_right = True
-                                elif ratio_diff < 0:
-                                    if is_holding_right:
-                                        self.input_controller.key_up(right_key)
-                                        is_holding_right = False
-                                else:  # ratio_diff == 0
-                                    if is_holding_right:
-                                        self.input_controller.key_up(right_key)
-                                        is_holding_right = False
-                                    else:
-                                        self.input_controller.key_down(
-                                            right_key
-                                        )
-                                        is_holding_right = True
-                                if is_holding_right:
-                                    press_duration = (
-                                        abs(ratio_diff)
-                                        * fish_speed_rate
-                                        * hold_rate
-                                    )
-                                else:
-                                    press_duration = (
-                                        abs(ratio_diff) * fish_speed_rate
-                                    )
-                                time.sleep(press_duration)
-                            else:
-                                if not is_holding_right:
-                                    self.input_controller.key_down(right_key)
-                                    is_holding_right = True
-                                    time.sleep(check_interval * hold_rate)
-                    pre_fish_position = (fish_direction, offset_ratio)
-                else:
-                    time.sleep(check_interval)
+                time.sleep(check_interval)
 
         finally:
-            # 確保釋放所有按鍵
+            # 確保釋放滑鼠左鍵
             if is_holding_mouse:
                 self.input_controller.mouse_up("left")
                 self.logger.info("釋放滑鼠左鍵")
+
+    def _movement_control_thread(self):
+        """AD 方向鍵控制線程"""
+        tracking_enabled = self.config.get(
+            "fishing.fish_tracking.enabled", True
+        )
+
+        if not tracking_enabled:
+            self.logger.info("魚追蹤已禁用，移動控制線程退出")
+            return
+
+        # 取得配置
+        check_interval = self.config.get(
+            "fishing.fish_tracking.check_interval", 0.05
+        )
+        hold_rate = (
+            2.8  # 因為左右魚桿比放開還慢N倍，這個參數用來補償這個時間差
+        )
+        fish_speed_rate = (
+            1.7  # 因為左右魚桿和魚的速度不同，這個參數用來調整追蹤速度
+        )
+        max_no_detection = 100
+
+        left_key = self.config.get("fishing.fish_tracking.left_key", "a")
+        right_key = self.config.get("fishing.fish_tracking.right_key", "d")
+        center_threshold_max = self.config.get(
+            "fishing.fish_tracking.center_threshold_max", 0.10
+        )
+
+        is_holding_left = False
+        is_holding_right = False
+        last_fish_position = None
+        pre_fish_position = ("center", 0.0)
+        no_detection_count = 0
+
+        try:
+            while not self.stop_threads:
+                # 魚追蹤
+                fish_direction, offset_ratio = self._get_fish_position()
+
+                if fish_direction is not None:
+                    last_fish_position = (fish_direction, offset_ratio)
+                    no_detection_count = 0
+                else:
+                    no_detection_count += 1
+                    if (
+                        no_detection_count <= max_no_detection
+                        and last_fish_position is not None
+                    ):
+                        fish_direction, offset_ratio = last_fish_position
+                        self.logger.debug(
+                            f"未檢測到魚 ({no_detection_count}/{max_no_detection})，保持原動作: {fish_direction} ({offset_ratio:.3f})"
+                        )
+                    else:
+                        if no_detection_count == max_no_detection + 1:
+                            self.logger.warning(
+                                f"連續{max_no_detection}次未檢測到魚，重置按鍵"
+                            )
+                        fish_direction = "center"
+                        offset_ratio = 0.0
+
+                # 控制方向鍵
+                if fish_direction == "center":
+                    # 魚在中心區域，釋放所有方向鍵
+                    if is_holding_left:
+                        self.input_controller.key_up(left_key)
+                        is_holding_left = False
+                        self.logger.debug(f"魚在中心，釋放 {left_key} 鍵")
+                    if is_holding_right:
+                        self.input_controller.key_up(right_key)
+                        is_holding_right = False
+                        self.logger.debug(f"魚在中心，釋放 {right_key} 鍵")
+                    time.sleep(check_interval)
+                elif offset_ratio >= center_threshold_max:
+                    # 偏移量超過最大閾值，完全壓住按鍵
+                    if fish_direction == "left":
+                        if not is_holding_left:
+                            if is_holding_right:
+                                self.input_controller.key_up(right_key)
+                                is_holding_right = False
+                            self.input_controller.key_down(left_key)
+                            is_holding_left = True
+                            self.logger.debug(
+                                f"魚在左側(完全)，按住 {left_key} 鍵"
+                            )
+                    else:  # right
+                        if not is_holding_right:
+                            if is_holding_left:
+                                self.input_controller.key_up(left_key)
+                                is_holding_left = False
+                            self.input_controller.key_down(right_key)
+                            is_holding_right = True
+                            self.logger.debug(
+                                f"魚在右側(完全)，按住 {right_key} 鍵"
+                            )
+                    time.sleep(check_interval)
+                else:
+                    pre_fish_direction, pre_offset_ratio = pre_fish_position
+
+                    if fish_direction == "left":
+                        if is_holding_right:
+                            self.input_controller.key_up(right_key)
+                            is_holding_right = False
+
+                        if pre_fish_direction == fish_direction:
+                            ratio_diff = offset_ratio - pre_offset_ratio
+                            if ratio_diff > 0:
+                                if not is_holding_left:
+                                    self.input_controller.key_down(left_key)
+                                    is_holding_left = True
+                            elif ratio_diff < 0:
+                                if is_holding_left:
+                                    self.input_controller.key_up(left_key)
+                                    is_holding_left = False
+                            else:  # ratio_diff == 0
+                                if is_holding_left:
+                                    self.input_controller.key_up(left_key)
+                                    is_holding_left = False
+                                else:
+                                    self.input_controller.key_down(left_key)
+                                    is_holding_left = True
+                            if is_holding_left:
+                                press_duration = (
+                                    abs(ratio_diff)
+                                    * fish_speed_rate
+                                    * hold_rate
+                                )
+                            else:
+                                press_duration = (
+                                    abs(ratio_diff) * fish_speed_rate
+                                )
+                            time.sleep(
+                                min(check_interval * 10, press_duration)
+                            )
+                        else:
+                            if not is_holding_left:
+                                self.input_controller.key_down(left_key)
+                                is_holding_left = True
+                                time.sleep(check_interval * hold_rate)
+
+                    else:  # right
+                        if is_holding_left:
+                            self.input_controller.key_up(left_key)
+                            is_holding_left = False
+                        if pre_fish_direction == fish_direction:
+                            ratio_diff = offset_ratio - pre_offset_ratio
+                            if ratio_diff > 0:
+                                if not is_holding_right:
+                                    self.input_controller.key_down(right_key)
+                                    is_holding_right = True
+                            elif ratio_diff < 0:
+                                if is_holding_right:
+                                    self.input_controller.key_up(right_key)
+                                    is_holding_right = False
+                            else:  # ratio_diff == 0
+                                if is_holding_right:
+                                    self.input_controller.key_up(right_key)
+                                    is_holding_right = False
+                                else:
+                                    self.input_controller.key_down(right_key)
+                                    is_holding_right = True
+                            if is_holding_right:
+                                press_duration = (
+                                    abs(ratio_diff)
+                                    * fish_speed_rate
+                                    * hold_rate
+                                )
+                            else:
+                                press_duration = (
+                                    abs(ratio_diff) * fish_speed_rate
+                                )
+                            time.sleep(
+                                min(check_interval * 10, press_duration)
+                            )
+                        else:
+                            if not is_holding_right:
+                                self.input_controller.key_down(right_key)
+                                is_holding_right = True
+                                time.sleep(check_interval * hold_rate)
+
+                pre_fish_position = (fish_direction, offset_ratio)
+
+        finally:
+            # 確保釋放所有方向鍵
             if is_holding_left:
                 self.input_controller.key_up(left_key)
                 self.logger.info(f"釋放 {left_key} 鍵")
             if is_holding_right:
                 self.input_controller.key_up(right_key)
                 self.logger.info(f"釋放 {right_key} 鍵")
-
-        self.logger.info("拉力計階段完成")
 
     def _detect_red_tension_color(self) -> int:
         """取得拉力計中紅色區域的比例"""
@@ -381,7 +428,9 @@ class TensionPhase:
             return False
 
         x, y, w, h = window_rect
-        red_tension_config = self.config.get("detection.red_tension_template", {})
+        red_tension_config = self.config.get(
+            "detection.red_tension_template", {}
+        )
         region_config = red_tension_config.get(
             "region", {"x": 0.33, "y": 0.8, "width": 0.34, "height": 0.06}
         )

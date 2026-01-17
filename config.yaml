@@ -33,13 +33,12 @@ fishing:
     right_key: "d"  # 向右移動鍵
     center_threshold_min: 0.03  # 中心閾值最小值（相對於視窗寬度），小於此值視為在中心
     center_threshold_max: 0.18  # 中心閾值最大值（相對於視窗寬度），超過此值完全壓住按鍵
-    center_offset: -80  # 中心點偏移值（像素），正值向右偏移，負值向左偏移
+    center_offset: -90  # 中心點偏移值（像素），正值向右偏移，負值向左偏移
     key_press_duration: 0.15  # 按鍵持續時間（秒）
   # 拉力計階段配置（收竿後的QTE/追踪階段）
   tension_phase:
     duration: 180  # 最大持續時間（秒）
     check_interval: 0.1  # 檢測間格（秒）
-    red_threshold: 0.17  # 紅色比例閾值（0.0-1.0），僅在 red_detection_mode 為 color 時使用
     red_template: "templates/red_tension.png"  # 紅色張力模板圖片路徑，僅在 red_detection_mode 為 template 時使用
     red_template_threshold: 0.5  # 模板匹配閾值，僅在 red_detection_mode 為 template 時使用
     red_tension_intermittent_hold_threshold: 50  # 張力數字閾值（0-100），高於此值將開始間歇點擊收竿
@@ -160,5 +159,5 @@ anti_detection:
 
 # 日誌配置
 logging:
-  level: "DEBUG"  # DEBUG, INFO, WARNING, ERROR
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
   file: "fishing_bot.log"
