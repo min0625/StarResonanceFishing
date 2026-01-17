@@ -32,14 +32,14 @@ fishing:
     left_key: "a"  # 向左移動鍵
     right_key: "d"  # 向右移動鍵
     center_threshold_min: 0.03  # 中心閾值最小值（相對於視窗寬度），小於此值視為在中心
-    center_threshold_max: 0.15  # 中心閾值最大值（相對於視窗寬度），超過此值完全壓住按鍵
+    center_threshold_max: 0.18  # 中心閾值最大值（相對於視窗寬度），超過此值完全壓住按鍵
     center_offset: -80  # 中心點偏移值（像素），正值向右偏移，負值向左偏移
     key_press_duration: 0.15  # 按鍵持續時間（秒）
   # 拉力計階段配置（收竿後的QTE/追踪階段）
   tension_phase:
     duration: 180  # 最大持續時間（秒）
     check_interval: 0.1  # 檢測間格（秒）
-    release_hold_duration: 0.5  # 釋放後保持釋放狀態的時間（秒）
+    release_hold_duration: 0.3  # 釋放後保持釋放狀態的時間（秒）
     # 紅色檢測方式: 'color' 或 'template'
     # 'color' - 使用紅色比例檢測
     # 'template' - 使用模板匹配檢測紅色張力圖片

@@ -102,6 +102,10 @@ class TensionPhase:
         no_detection_count = 0
         max_no_detection = 100
         release_time = None
+        # 因為左右魚桿比放開還慢N倍，這個參數用來補償這個時間差，數字越大表示魚桿壓住的時間越長
+        hold_rate = 2.5
+        # 因為左右魚桿和魚的速度不同，這個參數用來調整追蹤速度，數字越大表示魚桿壓住的時間越長
+        fish_speed_rate = 2
 
         left_key = self.config.get("fishing.fish_tracking.left_key", "a")
         right_key = self.config.get("fishing.fish_tracking.right_key", "d")
@@ -257,15 +261,22 @@ class TensionPhase:
                                             left_key
                                         )
                                         is_holding_left = True
-                                press_duration = max(
-                                    check_interval, abs(ratio_diff) * 2
-                                )
+                                if is_holding_left:
+                                    press_duration = (
+                                        abs(ratio_diff)
+                                        * fish_speed_rate
+                                        * hold_rate
+                                    )
+                                else:
+                                    press_duration = (
+                                        abs(ratio_diff) * fish_speed_rate
+                                    )
                                 time.sleep(press_duration)
                             else:
                                 if not is_holding_left:
                                     self.input_controller.key_down(left_key)
                                     is_holding_left = True
-                                    time.sleep(check_interval)
+                                    time.sleep(check_interval * hold_rate)
 
                         else:  # right
                             if is_holding_left:
@@ -292,15 +303,22 @@ class TensionPhase:
                                             right_key
                                         )
                                         is_holding_right = True
-                                press_duration = max(
-                                    check_interval, abs(ratio_diff) * 2
-                                )
+                                if is_holding_right:
+                                    press_duration = (
+                                        abs(ratio_diff)
+                                        * fish_speed_rate
+                                        * hold_rate
+                                    )
+                                else:
+                                    press_duration = (
+                                        abs(ratio_diff) * fish_speed_rate
+                                    )
                                 time.sleep(press_duration)
                             else:
                                 if not is_holding_right:
                                     self.input_controller.key_down(right_key)
                                     is_holding_right = True
-                                    time.sleep(check_interval)
+                                    time.sleep(check_interval * hold_rate)
                     pre_fish_position = (fish_direction, offset_ratio)
                 else:
                     time.sleep(check_interval)
