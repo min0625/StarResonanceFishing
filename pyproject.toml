@@ -1,3 +1,12 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools-scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "VERSION"
+version_scheme = "post-release"
+local_scheme = "no-local-version"
+
 [project]
 name = "StarResonanceFishing"
 dynamic = ["version"]
@@ -27,6 +36,7 @@ dev = [
     "pip>=25.3",
     "pyinstaller>=6.18.0",
     "ruff>=0.14.13",
+    "setuptools-scm>=6.2",
 ]
 
 [tool.ruff]

@@ -51,7 +51,7 @@ def generate_version(version=None):
     print("生成 VERSION 文件")
     print("=" * 50)
 
-    cmd = ["python", "scripts/generate_version.py"]
+    cmd = ["python", "scripts/generate_version_scm.py"]
     if version:
         cmd.extend(["--version", version])
 
