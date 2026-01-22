@@ -47,10 +47,10 @@ def main() -> int:
     for cmd in cmds:
         rc = run(cmd)
         if rc != 0:
-            print(f"❌ command '{' '.join(cmd)}' failed with code {rc}")
+            print(f"[FAIL] command '{' '.join(cmd)}' failed with code {rc}")
             return rc
 
-    print("\n✅ All checks passed.")
+    print("\n[OK] All checks passed.")
     return 0
 
 

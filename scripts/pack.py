@@ -57,7 +57,7 @@ def generate_version(version=None):
 
     result = run(cmd)
     if result != 0:
-        print("❌ 生成 VERSION 文件失敗")
+        print("[FAIL] 生成 VERSION 文件失敗")
         return False
 
     return True
@@ -72,7 +72,7 @@ def check():
     result = run(["python", "scripts/check.py"])
     if result != 0:
         print(
-            "❌ 代碼檢查未通過，請先修復問題，透過 `python scripts/check.py --fix` 嘗試自動修復"
+            "[FAIL] 代碼檢查未通過，請先修復問題，透過 `python scripts/check.py --fix` 嘗試自動修復"
         )
         return False
 
@@ -94,7 +94,7 @@ def pack_exe():
         ]
     )
     if result != 0:
-        print("❌ 打包失敗")
+        print("[FAIL] 打包失敗")
         return False
 
     return True
@@ -124,7 +124,7 @@ def main():
 
         # 打包成功
         print("=" * 50)
-        print("✓ 打包成功！")
+        print("[OK] 打包成功！")
         print("=" * 50)
         print(
             f"輸出文件: {Path('dist').absolute() / 'StarResonanceFishing.exe'}"
@@ -134,7 +134,7 @@ def main():
         print("\n\n用戶中斷打包")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ 打包過程發生錯誤: {e}")
+        print(f"\n[FAIL] 打包過程發生錯誤: {e}")
         sys.exit(1)
 
 

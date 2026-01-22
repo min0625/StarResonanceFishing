@@ -59,7 +59,7 @@ def main():
     with open(version_file, "w", encoding="utf-8") as f:
         f.write(version)
 
-    print(f"✓ VERSION 文件已生成: {version}")
+    print(f"[OK] VERSION 文件已生成: {version}")
 
 
 if __name__ == "__main__":
